@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link href="https://andybrewer.github.io/mvp/mvp.css" rel="stylesheet"></link>
+</head>
+
+<body>
+  <header>
+    <h1>
+      <a href="/">Homeplus Security News Scrapper</a>
+    </h1>    
+  </header>
+  <main>
+    {% for i in article %}
+    <div>
+      <h3>
+        <a href="{{i.link}}" target="_blank">{{i.cat}} | {{i.domain}} | {{i.title}} | {{i.pubDate}}</a>
+      </h3>
+      <h4>{{i.description}}</h4>
+      <hr>
+    </div>
+    {% endfor %}
+  </main>  
+</body>
+
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link href="https://andybrewer.github.io/mvp/mvp.css" rel="stylesheet"></link>
+</head>
+
+<body>
+  <header>    
+    <h1> Homeplus Security News Scrapper </h1>
+    <h3> 지난 24시간 동안의 최신 보안 뉴스를 모아서 보여드립니다</h3>
+    <h4> 현재 KISA 인터넷 침해사고 경보단계 : {{t_info}} </h4>
+  </header>
+  <main>
+    <form action="/read">
+     <h4>관심있는 키워드 선택 : </h4>
+    <ul>
+      {% for i in news_cat %}
+      <li>
+        <input type="checkbox" name = "{{i}}" id = "{{i}}">
+        <label for="{{i}}">
+          {{i}}
+        </label>
+      </li>
+      {% endfor %}
+    </ul>
+    <button type="submit">모아보기</button>
+    <button type="submit">전날 스크랩한 기사 다운로드</button>
+    </form>
+  </main>
+  
+</body>
+
+</html>
