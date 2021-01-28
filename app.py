@@ -2,9 +2,10 @@ import requests
 import operator
 import pandas as pd
 import re
+import datetime
+from datetime import date
 from bs4 import BeautifulSoup
 from flask import Flask, render_template, request
-from datetime import date
 from operator import itemgetter
 
 
@@ -17,6 +18,7 @@ news_cat = [
     "정보유출",
     "클라우드",
     "방화벽",
+    "해커"
 ]
 
 # 최종 결과 list. 전역으로 해야 할지 고민 중
@@ -25,7 +27,7 @@ scrapped_news = []
 # 기본 설정
 NA_id = "IHh_ePMGCQVkZkjIZ1CA"
 NA_psd = "AzbXHQ6BTA"
-date = date.today()
+now = datetime.datetime.now()
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36',
@@ -37,6 +39,13 @@ headers2 = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'}
 
 # html title tag 에서 신문사 이름 받아오는 함수. title tag 가 없을 경우 domain으로 처리함
+
+
+def convert_time(time):
+    strip = datetime.datetime.strptime(time, '%a, %d %b %Y %H:%M:%S +0900')
+    converted_str = strip.strftime('%Y-%m-%d %H:%M:%S')
+    converted = datetime.datetime.strptime(converted_str, '%Y-%m-%d %H:%M:%S')
+    return converted
 
 
 def get_brand(domain):
@@ -65,7 +74,7 @@ def remove_tag(news):
 
 
 # 기사 내용을 사이트명, 기사제목, 본문내용, 시간, 검색키워드, link 로 세분화해 dict에 저장하는 함수
-def make_article(news, nlink, cat):
+def make_article(news, nlink, cat, time):
     extract_domain = nlink.split('/')
     domain = extract_domain[2]
     brand = get_brand(domain)
@@ -74,7 +83,7 @@ def make_article(news, nlink, cat):
         'domain': brand,
         'title': news['title'],
         'description': news['description'],
-        'pubDate': news['pubDate'],
+        'pubDate': time,
         'cat': cat,
         'link': nlink
     }
@@ -85,12 +94,29 @@ def make_article(news, nlink, cat):
 
 def article_check(newslist, key):
     for news in newslist:
-        nlink = news['originallink']
-        cat = key
-        if not any(d['link'] == nlink for d in scrapped_news):
-            make_article(news, nlink, cat)
+        time = convert_time(news['pubDate'])
+        w_day = now.weekday()  # 요일체크
+        tminus = (now - time). days
+        if w_day == 0:
+            if tminus <= 3:  # 월요일이면 3일치 기사 스크랩
+                nlink = news['originallink']
+                cat = key
+                if not any(d['link'] == nlink for d in scrapped_news):
+                    make_article(news, nlink, cat, time)
+                else:
+                    pass
+            else:
+                pass
         else:
-            pass
+            if tminus <= 1:  # 월요일 아니면 1일치 기사 스크랩
+                nlink = news['originallink']
+                cat = key
+                if not any(d['link'] == nlink for d in scrapped_news):
+                    make_article(news, nlink, cat, time)
+                else:
+                    pass
+            else:
+                pass
 
 # 네이버 뉴스 api 에서 key 를 검색해 기사를 받아오는 함수
 # home.html 에서 args로 넘겨준 값을 검색 키워드로 하여 API로 데이터 받아오기
@@ -127,6 +153,7 @@ def home():
 # Flask 검색 결과 페이지.
 @ app.route("/read")
 def scrap():
+    scrapped_news.clear
     keys_to_search = []    #
     selected = request.args  # check 한 단어들
     # new_cat의 키워드들 중에 check 한 단어 list에 있는 것만 keys_to_search list 로 넘기고, keys(후략) list의 원소마다 get_news함수로 뉴스를 받아옴
@@ -135,7 +162,8 @@ def scrap():
             keys_to_search.append(i)
     for key in keys_to_search:
         get_news(key)
-    sorted_scrapped_news = sorted(scrapped_news, key=itemgetter('pubDate'))
+    sorted_scrapped_news = sorted(
+        scrapped_news, key=itemgetter('pubDate'), reverse=True)
     return render_template("read.html", article=sorted_scrapped_news)
 
 
