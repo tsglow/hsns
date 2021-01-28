@@ -10,12 +10,6 @@ from datetime import date
 # 검색어 카테고리
 news_cat = [
     "랜섬",
-    "솔라윈즈",
-    "보안 취약점",
-    "리눅스",
-    "정보유출",
-    "클라우드",
-    "방화벽",
 ]
 
 # 최종 결과 list. 전역으로 해야 할지 고민 중
@@ -74,9 +68,10 @@ def make_article(news, nlink, cat):
         'title': news['title'],
         'description': news['description'],
         'pubDate': news['pubDate'],
-        'cat': key,
+        'cat': cat,
         'link': nlink
     }
+    print(result)
     scrapped_news.append(result)
 
 # 기사 중복체크 후 make article로
@@ -86,24 +81,26 @@ def article_check(newslist, key):
     for news in newslist:
         nlink = news['originallink']
         cat = key
-        for dict in scrapped_news:
-            if dict['link'] == nlink:
-                a = dict['cat']
-                dict['cat'] = [a, cat]
-                print(야옹)
-            else:
-                make_article(news, nlink, cat)
-                print(어흥)
+        if len(scrapped_news) == 0:
+            print("첫기사")
+            make_article(news, nlink, cat)
+        else:
+            for article in scrapped_news:
+                if nlink == article['link']:
+                    print("중복")
+                    a = article['cat']
+                    article['cat'] = [a, cat]
+                else:
+                    print("기사추가")
+                    make_article(news, nlink, cat)
+
 
 # 네이버 뉴스 api 에서 key 를 검색해 기사를 받아오는 함수
 # home.html 에서 args로 넘겨준 값을 검색 키워드로 하여 API로 데이터 받아오기
-# for avoind bot blocker : requests.get(url, headers=headers)
-
-
 def get_news(key):
     search_word = key  # 검색어
     encode_type = 'json'  # 출력 방식 json 또는 xml
-    max_display = 10  # 출력 뉴스 수
+    max_display = 6  # 출력 뉴스 수
     sort = 'sim'  # 결과값의 정렬기준 시간순 date, 관련도 순 sim
     start = 1  # 출력 위치
     url = f'https://openapi.naver.com/v1/search/news.{encode_type}?query="{search_word}"&display={str(int(max_display))}&start={str(int(start))}&sort={sort}'
@@ -112,38 +109,11 @@ def get_news(key):
     article_check(newslist, key)
 
 
-# Flask 앱 이름
-app = Flask("Homeplus Securiy News Scrapper")
-
-# Flask 기본 페이지. 검색할 키워드와  kisa 인터넷 경보 정보를 표시
-
-
-@ app.route("/")
-def home():
-    r = requests.get("https://www.krcert.or.kr/main.do")
-    soup = BeautifulSoup(r.text, "html.parser")
-    t_info = soup.find("div", {"class": "inWrap"}).find(
-        "span", {"class": "state"}).string  # kisa 인터넷 경보 정보
-    return render_template("home.html", news_cat=news_cat, t_info=t_info)
-
-
-# Flask 검색 결과 페이지.
-@ app.route("/read")
+# 시동함수
 def scrap():
-    keys_to_search = []    #
-    selected = request.args  # check 한 단어들
-    # new_cat의 키워드들 중에 check 한 단어 list에 있는 것만 keys_to_search list 로 넘기고, keys(후략) list의 원소마다 get_news함수로 뉴스를 받아옴
-    for i in news_cat:
-        if i in selected:
-            keys_to_search.append(i)
-    for key in keys_to_search:
+    for key in news_cat:
         get_news(key)
-    return render_template("read.html", article=scrapped_news)
 
 
-# pandas로 데이터 프레임으로 변환 후 csv로 저장하기
-# df = pd.DataFrame(r.json()['items'])
-# df.to_csv(f'news_search_result_{search_word}.csv')
-
-# repl에서 돌릴때 마지막에 필요함
-# #app.run(host="0.0.0.0")
+scrap()
+print(scrapped_news)

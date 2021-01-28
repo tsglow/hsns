@@ -35,9 +35,15 @@ headers = {
 headers2 = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'}
 
+
+# 기사 중복체크 함수
+def article_check(nlink):
+    for dict in scrapped_news:  # list에서 dict값 소환
+        for item in dict:
+        print()
+
+
 # html title tag 에서 신문사 이름 받아오는 함수. title tag 가 없을 경우 domain으로 처리함
-
-
 def get_brand(domain):
     rst = requests.get(
         f"http://{domain}", allow_redirects=True, timeout=10, headers=headers2,)
@@ -64,42 +70,33 @@ def remove_tag(news):
 
 
 # 기사 내용을 사이트명, 기사제목, 본문내용, 시간, 검색키워드, link 로 세분화해 dict에 저장하는 함수
-def make_article(news, nlink, cat):
-    extract_domain = nlink.split('/')
-    domain = extract_domain[2]
-    brand = get_brand(domain)
-    remove_tag(news)
-    result = {
-        'domain': brand,
-        'title': news['title'],
-        'description': news['description'],
-        'pubDate': news['pubDate'],
-        'cat': key,
-        'link': nlink
-    }
-    scrapped_news.append(result)
-
-# 기사 중복체크 후 make article로
-
-
-def article_check(newslist, key):
+def make_article(newslist, key):
     for news in newslist:
         nlink = news['originallink']
         cat = key
-        for dict in scrapped_news:
-            if dict['link'] == nlink:
-                a = dict['cat']
-                dict['cat'] = [a, cat]
-                print(야옹)
-            else:
-                make_article(news, nlink, cat)
-                print(어흥)
+        # link로 이미 같은 기사가 수집되었는지 확인
+        if article_check:
+            print("중복")
+            pass
+        else:
+            extract_domain = link.split('/')
+            domain = extract_domain[2]
+            brand = get_brand(domain)
+            remove_tag(news)
+            result = {
+                'domain': brand,
+                'title': news['title'],
+                'description': news['description'],
+                'pubDate': news['pubDate'],
+                'cat': key,
+                'link': nlink
+            }
+            scrapped_news.append(result)
+
 
 # 네이버 뉴스 api 에서 key 를 검색해 기사를 받아오는 함수
 # home.html 에서 args로 넘겨준 값을 검색 키워드로 하여 API로 데이터 받아오기
 # for avoind bot blocker : requests.get(url, headers=headers)
-
-
 def get_news(key):
     search_word = key  # 검색어
     encode_type = 'json'  # 출력 방식 json 또는 xml
@@ -109,7 +106,7 @@ def get_news(key):
     url = f'https://openapi.naver.com/v1/search/news.{encode_type}?query="{search_word}"&display={str(int(max_display))}&start={str(int(start))}&sort={sort}'
     r = requests.get(url, headers=headers)
     newslist = r.json()["items"]
-    article_check(newslist, key)
+    make_article(newslist, key)
 
 
 # Flask 앱 이름
