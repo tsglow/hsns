@@ -24,13 +24,12 @@ def check():
              "title": "네이버", "cat": cat, "link": link}
         scrapped_news.append(a)
     else:
-        for dict in scrapped_news:
-            if dict['link'] == link:
-                a = dict['cat']
-                dict['cat'] = [a, cat]
-            else:
-                a = {"domain": "www.naver.com",
-                     "title": "네이버", "cat": cat, "link": link}
+        if not any(d['link'] == link for d in scrapped_news):
+            a = {"domain": "www.naver.com",
+                 "title": "네이버", "cat": cat, "link": link}
+            scrapped_news.append(a)
+        else:
+            pass
 
 
 print(len(scrapped_news))

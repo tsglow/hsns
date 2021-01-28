@@ -5,6 +5,7 @@ import re
 from bs4 import BeautifulSoup
 from flask import Flask, render_template, request
 from datetime import date
+from operator import itemgetter
 
 
 # 검색어 카테고리
@@ -74,7 +75,7 @@ def make_article(news, nlink, cat):
         'title': news['title'],
         'description': news['description'],
         'pubDate': news['pubDate'],
-        'cat': key,
+        'cat': cat,
         'link': nlink
     }
     scrapped_news.append(result)
@@ -86,14 +87,10 @@ def article_check(newslist, key):
     for news in newslist:
         nlink = news['originallink']
         cat = key
-        for dict in scrapped_news:
-            if dict['link'] == nlink:
-                a = dict['cat']
-                dict['cat'] = [a, cat]
-                print(야옹)
-            else:
-                make_article(news, nlink, cat)
-                print(어흥)
+        if not any(d['link'] == nlink for d in scrapped_news):
+            make_article(news, nlink, cat)
+        else:
+            pass
 
 # 네이버 뉴스 api 에서 key 를 검색해 기사를 받아오는 함수
 # home.html 에서 args로 넘겨준 값을 검색 키워드로 하여 API로 데이터 받아오기
@@ -138,7 +135,8 @@ def scrap():
             keys_to_search.append(i)
     for key in keys_to_search:
         get_news(key)
-    return render_template("read.html", article=scrapped_news)
+    sorted_scrapped_news = sorted(scrapped_news, key=itemgetter('pubDate'))
+    return render_template("read.html", article=sorted_scrapped_news)
 
 
 # pandas로 데이터 프레임으로 변환 후 csv로 저장하기
