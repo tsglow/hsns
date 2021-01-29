@@ -28,6 +28,7 @@ scrapped_news = []
 NA_id = "IHh_ePMGCQVkZkjIZ1CA"
 NA_psd = "AzbXHQ6BTA"
 now = datetime.datetime.now()
+search_time = now.strftime('%Y-%m-%d')
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36',
@@ -38,14 +39,15 @@ headers = {
 headers2 = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'}
 
-# html title tag 에서 신문사 이름 받아오는 함수. title tag 가 없을 경우 domain으로 처리함
 
-
+# pubDate를 datetime type으로 변환
 def convert_time(time):
     strip = datetime.datetime.strptime(time, '%a, %d %b %Y %H:%M:%S +0900')
     converted_str = strip.strftime('%Y-%m-%d %H:%M:%S')
     converted = datetime.datetime.strptime(converted_str, '%Y-%m-%d %H:%M:%S')
     return converted
+
+# domain url로 신문사 title tag 가져오기
 
 
 def get_brand(domain):
@@ -89,40 +91,30 @@ def make_article(news, nlink, cat, time):
     }
     scrapped_news.append(result)
 
-# 기사 중복체크 후 make article로
 
-
+# 기사 중복, 시간 체크 후 make article로
 def article_check(newslist, key):
+    w_day = now.weekday()  # 요일체크
     for news in newslist:
         time = convert_time(news['pubDate'])
-        w_day = now.weekday()  # 요일체크
-        tminus = (now - time). days
-        if w_day == 0:
-            if tminus <= 3:  # 월요일이면 3일치 기사 스크랩
-                nlink = news['originallink']
-                cat = key
-                if not any(d['link'] == nlink for d in scrapped_news):
-                    make_article(news, nlink, cat, time)
-                else:
-                    pass
-            else:
-                pass
+        tminus = (now - time).days
+        if w_day == 0 and tminus <= 3:  # 월요일이면 3일치 기사 스크랩
+            nlink = news['originallink']
+            cat = key
+            if not any(d['link'] == nlink for d in scrapped_news):
+                make_article(news, nlink, cat, time)
+        elif w_day != 0 and tminus <= 1:  # 월요일 아니면 1일치 기사 스크랩
+            nlink = news['originallink']
+            cat = key
+            if not any(d['link'] == nlink for d in scrapped_news):
+                make_article(news, nlink, cat, time)
         else:
-            if tminus <= 1:  # 월요일 아니면 1일치 기사 스크랩
-                nlink = news['originallink']
-                cat = key
-                if not any(d['link'] == nlink for d in scrapped_news):
-                    make_article(news, nlink, cat, time)
-                else:
-                    pass
-            else:
-                pass
+            pass
+
 
 # 네이버 뉴스 api 에서 key 를 검색해 기사를 받아오는 함수
 # home.html 에서 args로 넘겨준 값을 검색 키워드로 하여 API로 데이터 받아오기
 # for avoind bot blocker : requests.get(url, headers=headers)
-
-
 def get_news(key):
     search_word = key  # 검색어
     encode_type = 'json'  # 출력 방식 json 또는 xml
@@ -138,9 +130,8 @@ def get_news(key):
 # Flask 앱 이름
 app = Flask("Homeplus Securiy News Scrapper")
 
+
 # Flask 기본 페이지. 검색할 키워드와  kisa 인터넷 경보 정보를 표시
-
-
 @ app.route("/")
 def home():
     r = requests.get("https://www.krcert.or.kr/main.do")
@@ -164,6 +155,8 @@ def scrap():
         get_news(key)
     sorted_scrapped_news = sorted(
         scrapped_news, key=itemgetter('pubDate'), reverse=True)
+    df = pd.DataFrame(scrapped_news)
+    df.to_csv(f'news_at_{search_time}.csv', index=False)
     return render_template("read.html", article=sorted_scrapped_news)
 
 

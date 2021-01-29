@@ -16,8 +16,28 @@
 # db에서 특정 키워드들과 hit 율이 높을수록 가중치 추가하여 분류
 
 8. 검색결과 DB에 저장하고 DB에 있으면 그 값 불러오기
-# db저장은 날짜기준으로?
+# db저장은 날짜기준으로? : 완료
 # db에 저장된 시각이 검색 시간과 6시간 이상 차이나면 불러오지 말고 새로 검색하기
+# db 종류는 두개
+#   1). news list db : news link 와 pubdate만 저장. today()_newslist.csv
+#   2). keyword and search list db : keyword_datetime.now().csv 형태로, 키워드 별로 검색된 기사를 저장된
+# 검색 시작하면 일단 오늘날짜의 news list db가 있는지 체크 
+# 있으면 news 의 link 만 스크랩해서 가져와서 news list db에 있는지 확인. 
+# 없다면 일반적으로 기사 스크랩 시작 해서 양쪽 db에 저장하고 완료
+
+9. 유저 키워드 추가기능
+#일반적으로 접근하면 현재 read페이지가 나오게
+#키워드 추가 페이지로 접근하면 keyword.csv 파일을 긁어서 list로 만들고 다시 form 의 default 값으로 표시
+#위에서 표시된 값 다음에 사용자가 단어 추가하고 submit 하면 그걸 args list로 만들어서 keyword.csv에 덮어쓴다.
+
+10. 결과 페이지에 검색 기간 추가
+# " datetime()기준으로 days()내의 검색 결과 len(scrapped_news) 입니다"
+
+11. 스크랩 알고리즘 계선
+# asis : 키워드 - 검색 - 스크랩 - 다음 키워드 - 중복체크 - 스크랩 
+# tobe : 모든 키워드 검색 후 link 랑 pubdate로 중복체크하고 살아남은 url로 스크랩 완료'
+
+
 
 
 
