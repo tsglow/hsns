@@ -52,7 +52,7 @@ def convert_time(time):
 
 def get_brand(domain):
     rst = requests.get(
-        f"http://{domain}", allow_redirects=True, timeout=10, headers=headers2,)
+        f"http://{domain}", allow_redirects=True, timeout=10, headers=headers2)
     # 원문 기사 인코딩 방식대로 인코딩처리(euc-kr로 나타내는게 목적이지만 python이 인식한 것에 기반하므로 정확하지 않음)
     rst.encoding = rst.apparent_encoding
     soup = BeautifulSoup(rst.text, 'html.parser')
@@ -145,18 +145,21 @@ def home():
 @ app.route("/read")
 def scrap():
     scrapped_news.clear
-    keys_to_search = []    #
-    selected = request.args  # check 한 단어들
-    # new_cat의 키워드들 중에 check 한 단어 list에 있는 것만 keys_to_search list 로 넘기고, keys(후략) list의 원소마다 get_news함수로 뉴스를 받아옴
-    for i in news_cat:
-        if i in selected:
-            keys_to_search.append(i)
-    for key in keys_to_search:
-        get_news(key)
-    sorted_scrapped_news = sorted(
-        scrapped_news, key=itemgetter('pubDate'), reverse=True)
-    df = pd.DataFrame(scrapped_news)
-    df.to_csv(f'news_at_{search_time}.csv', index=False)
+    try:
+        from_db = pd.read_csv(f'news_at_{search_time}.csv')
+        sorted_scrapped_news = from_db.to_dict('records')
+        # if sorted_scrapped_news[0].pubdate < 1: 중복되지 않은 기사는 스크랩
+    except:
+        keys_to_search = []
+        selected = request.args        
+        for i in news_cat:
+            if i in selected:
+                keys_to_search.append(i)
+        for key in keys_to_search:
+            get_news(key)
+        sorted_scrapped_news = sorted(scrapped_news, key=itemgetter('pubDate'), reverse=True)
+        df = pd.DataFrame(sorted_scrapped_news)
+        df.to_csv(f'news_at_{search_time}.csv', index=False)
     return render_template("read.html", article=sorted_scrapped_news)
 
 
