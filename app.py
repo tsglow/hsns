@@ -97,6 +97,7 @@ def article_check(newslist, key):
     w_day = now.weekday()  # 요일체크
     for news in newslist:
         time = convert_time(news['pubDate'])
+        global tminus
         tminus = (now - time).days
         if w_day == 0 and tminus <= 3:  # 월요일이면 3일치 기사 스크랩
             nlink = news['originallink']
@@ -160,7 +161,7 @@ def scrap():
         sorted_scrapped_news = sorted(scrapped_news, key=itemgetter('pubDate'), reverse=True)
         df = pd.DataFrame(sorted_scrapped_news)
         df.to_csv(f'news_at_{search_time}.csv', index=False)
-    return render_template("read.html", article=sorted_scrapped_news)
+    return render_template("read.html", article=sorted_scrapped_news, count=len(sorted_scrapped_news), today=now, duration=tminus)
 
 
 # pandas로 데이터 프레임으로 변환 후 csv로 저장하기
