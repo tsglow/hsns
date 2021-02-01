@@ -11,14 +11,15 @@ from operator import itemgetter
 
 # 검색어 카테고리
 news_cat = [
-    "랜섬",
+    "랜섬웨어",
     "솔라윈즈",
     "보안 취약점",
     "리눅스",
     "정보유출",
     "클라우드",
     "방화벽",
-    "해커"
+    "해킹",
+    "다크웹"
 ]
 
 # 최종 결과 list. 전역으로 해야 할지 고민 중
@@ -161,7 +162,7 @@ def scrap():
         sorted_scrapped_news = sorted(scrapped_news, key=itemgetter('pubDate'), reverse=True)
         df = pd.DataFrame(sorted_scrapped_news)
         df.to_csv(f'news_at_{search_time}.csv', index=False)
-    return render_template("read.html", article=sorted_scrapped_news, count=len(sorted_scrapped_news), today=now, duration=tminus)
+    return render_template("read.html", article=sorted_scrapped_news, count=len(sorted_scrapped_news), today=now)
 
 
 # pandas로 데이터 프레임으로 변환 후 csv로 저장하기
