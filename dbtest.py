@@ -10,16 +10,16 @@ from operator import itemgetter
 
 
 # 검색어 카테고리
-news_cat = [
-    "랜섬",
-    "솔라윈즈",
-    "보안 취약점",
-    "리눅스",
-    "정보유출",
-    "클라우드",
-    "방화벽",
-    "해커"
-]
+cat = {
+    "search_word" :
+     ["랜섬",
+     "솔라윈즈",
+     "보안 취약점",
+     "리눅스",
+     "정보유출",
+     "클라우드",
+     "방화벽",
+     "해커"]}
 
 # 최종 결과 list. 전역으로 해야 할지 고민 중
 scrapped_news = []
@@ -35,17 +35,29 @@ headers = {
     'X-Naver-Client-Id': NA_id,
     'X-Naver-Client-Secret': NA_psd}
 
+@ app.route("/")
+def home():
+    r = requests.get("https://www.krcert.or.kr/main.do")
+    soup = BeautifulSoup(r.text, "html.parser")
+    t_info = soup.find("div", {"class": "inWrap"}).find(
+        "span", {"class": "state"}).string  # kisa 인터넷 경보 정보
+    return render_template("dbtest.html", news_cat=news_cat, t_info=t_info)
 
-def scrap():
+
+def keyword_load():
     scrapped_news.clear
-    # 오늘 날짜로 작성된 db파일이 있나 검색
-    from_db = pd.read_csv(f'news_at_{search_time}.csv')
-    sorted_scrapped_news = from_db.to_dict(
-        'records')  # 있다면 dict 로 이루어진 list로 불러옴
-    print(sorted_scrapped_news)
+    try:
+        from_db = pd.read_csv(f'keyword.csv')        
+        news_cat = from_db.search_word.to_list()
+        print(news_cat)     
+    except :
+        df = pd.DataFrame(cat)
+        df.to_csv(f'keyword.csv', index=False)
 
 
-scrap()
+
+keyword_load()
+
 #    except:
 #        for key in news_cat:
 #            get_news(key)
