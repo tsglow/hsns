@@ -35,6 +35,7 @@ headers2 = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'}
 
 
+#newspaper 모듈로 기사 본문 가져오기. ssl certificate에러 나면 스킵
 def make_text (nlink):    
     try:
         a = Article(nlink, language='ko', headers=headers2, verify=False)
@@ -53,8 +54,6 @@ def convert_time(time):
     converted_str = strip.strftime('%Y-%m-%d %H:%M:%S')
     converted = datetime.datetime.strptime(converted_str, '%Y-%m-%d %H:%M:%S')
     return converted
-
-
 
 
 #title 값을 제대로 받아오면 site_info에 아니면  info_error에 추가
@@ -183,6 +182,22 @@ def get_news(key,site_db):
     article_check(newslist, key, site_db)
 
 
+#시동함수
+def handle_keyword():
+    news_cat = keyword_load()
+    from_site_csv = pd.read_csv('site_title.csv') #site db로딩
+    site_db = from_site_csv.to_dict('records')            
+    for key in news_cat:            
+        get_news(key,site_db)
+    sorted_scrapped_news = sorted(scrapped_news, key=itemgetter('pubDate'), reverse=True)
+    news_df = pd.DataFrame(sorted_scrapped_news)
+    news_df.to_csv(f'news_at_{search_time}.csv', index=False)
+    site_df = pd.DataFrame(new_site_info)
+    site_df.to_csv('site_title.csv', mode='a', header=None, index=False)
+    site_error_df = pd.DataFrame(new_site_info_error)
+    site_error_df.to_csv('site_title.csv', mode='a', header=None, index=False)
+    site_error_df.to_csv('site_title_error.csv', mode='a', header=None, index=False)
+
 
 #검색어 db 에서 검색어 가져오는 함수
 def keyword_load():     
@@ -199,10 +214,8 @@ def get_kisa_status():
     return t_info
 
 
-
 # Flask 앱 이름
 app = Flask("Homeplus Securiy News Scrapper")
-
 
 
 # Flask 기본 페이지. 검색할 키워드와  kisa 인터넷 경보 정보를 표시
@@ -213,6 +226,8 @@ def scrap():
     try:
         from_news_db = pd.read_csv(f'news_at_{search_time}.csv') #news db로딩
         sorted_scrapped_news = from_news_db.to_dict('records')
+        last_article = sorted_scrapped_news[0]
+        dead_line = last_article['pubDate']        
         # if sorted_scrapped_news[0].pubdate < 1: 중복되지 않은 기사는 스크랩
     except:
         news_cat = keyword_load()
@@ -236,11 +251,6 @@ def scrap():
 def home():    
     return render_template("read.html")
 
-
-
-# pandas로 데이터 프레임으로 변환 후 csv로 저장하기
-# df = pd.DataFrame(r.json()['items'])
-# df.to_csv(f'news_search_result_{search_word}.csv')
 
 # repl에서 돌릴때 마지막에 필요함
 # #app.run(host="0.0.0.0")
