@@ -1,3 +1,4 @@
+import newspaper
 import requests
 import operator
 import pandas as pd
@@ -7,9 +8,8 @@ from datetime import date
 from bs4 import BeautifulSoup
 from flask import Flask, render_template, request
 from operator import itemgetter
+from newspaper import Article
 
-
-# 검색어 카테고리
 
 
 # 최종 결과 list. 전역으로 해야 할지 고민 중
@@ -34,6 +34,18 @@ headers = {
 headers2 = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'}
 
+
+def make_text (nlink):    
+    try:
+        a = Article(nlink, language='ko', headers=headers2, verify=False)
+        a.download()
+        a.parse()
+    except :
+        text = "본문을 가져올 수 없습니다(SSL Certificate 에러)"
+        return text
+    else:        
+        text = a.text
+        return text
 
 # pubDate를 datetime type으로 변환
 def convert_time(time):
@@ -106,21 +118,27 @@ def remove_tag(news):
     news['description'] = str(y)
 
 
+
+
 # 기사 내용을 사이트명, 기사제목, 본문내용, 시간, 검색키워드, link 로 세분화해 dict에 저장하는 함수
 def make_article(news, nlink, cat, time, site_db):
     extract_domain = nlink.split('/')
     domain = extract_domain[2]
-    brand = get_brand(domain, site_db)
+    brand = get_brand(domain, site_db)        
     remove_tag(news)
+    text = make_text(nlink)    
     result = {
         'domain': brand,
         'title': news['title'],
         'description': news['description'],
         'pubDate': time,
         'cat': cat,
-        'link': nlink
+        'link': nlink,
+        'text' : text
     }
     scrapped_news.append(result)
+
+
 
 # 중복기사인 경우 cat 내용만 추가, 신규면 make article
 def merge_or_make_article(news,key, time, site_db):
@@ -132,6 +150,7 @@ def merge_or_make_article(news,key, time, site_db):
         search_overlap['cat'] = f'{old_cat}, {cat}'
     else :
         make_article(news, nlink, cat, time, site_db)        
+
 
 
 # 기사 시간 체크 후 merge or make article 로
@@ -148,13 +167,14 @@ def article_check(newslist, key, site_db):
             pass
 
 
+
 # 네이버 뉴스 api 에서 key 를 검색해 기사를 받아오는 함수
 # home.html 에서 args로 넘겨준 값을 검색 키워드로 하여 API로 데이터 받아오기
 # for avoind bot blocker : requests.get(url, headers=headers)
 def get_news(key,site_db):
     search_word = key  # 검색어
     encode_type = 'json'  # 출력 방식 json 또는 xml
-    max_display = 10  # 출력 뉴스 수
+    max_display = 6  # 출력 뉴스 수
     sort = 'sim'  # 결과값의 정렬기준 시간순 date, 관련도 순 sim
     start = 1  # 출력 위치
     url = f'https://openapi.naver.com/v1/search/news.{encode_type}?query="{search_word}"&display={str(int(max_display))}&start={str(int(start))}&sort={sort}'
@@ -179,8 +199,10 @@ def get_kisa_status():
     return t_info
 
 
+
 # Flask 앱 이름
 app = Flask("Homeplus Securiy News Scrapper")
+
 
 
 # Flask 기본 페이지. 검색할 키워드와  kisa 인터넷 경보 정보를 표시
@@ -206,7 +228,7 @@ def scrap():
         site_error_df = pd.DataFrame(new_site_info_error)
         site_error_df.to_csv('site_title.csv', mode='a', header=None, index=False)
         site_error_df.to_csv('site_title_error.csv', mode='a', header=None, index=False)
-    return render_template("home.html",  t_info=t_info, article=sorted_scrapped_news, count=len(sorted_scrapped_news), today=now)
+    return render_template("home.html",  t_info=t_info, article=sorted_scrapped_news, count=len(sorted_scrapped_news), today=search_time)
 
 
 # Flask 검색 설정 페이지.
