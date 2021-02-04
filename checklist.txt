@@ -71,3 +71,8 @@
 17. 키워드별로 검색결과 수 다르게 조정
 
 18. newspaper3k 모듈로 기사 본문 가져오기 : 완료
+
+19. newspaper3k로 가져온 기사 보기 좋게 바꾸기
+
+tminus
+if week day ==0 and tminus.days<=3 and tminus.hours > 1

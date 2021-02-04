@@ -22,8 +22,9 @@ new_site_info_error = []
 # 기본 설정
 NA_id = "IHh_ePMGCQVkZkjIZ1CA"
 NA_psd = "AzbXHQ6BTA"
-now = datetime.datetime.now()
-search_time = now.strftime('%Y-%m-%d')
+time_now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+time_now = datetime.datetime.strptime(time_now, '%Y-%m-%d %H:%M:%S')
+search_time = time_now.strftime('%Y-%m-%d')
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36',
@@ -36,7 +37,7 @@ headers2 = {
 
 
 #newspaper 모듈로 기사 본문 가져오기. ssl certificate에러 나면 스킵
-def make_text (nlink):    
+def make_text(nlink):    
     try:
         a = Article(nlink, language='ko', headers=headers2, verify=False)
         a.download()
@@ -152,15 +153,17 @@ def merge_or_make_article(news,key, time, site_db):
 
 
 
-# 기사 시간 체크 후 merge or make article 로
+# 기사 시간 체크 후 merge or make article 로. 여기에 last pubDate 이후의 pubdate인 경우 분기 추가
 def article_check(newslist, key, site_db):
-    w_day = now.weekday()  # 요일체크
+    w_day = time_now.weekday()  # 요일체크
     for news in newslist:
         time = convert_time(news['pubDate'])
-        tminus = (now - time).days
-        if w_day == 0 and tminus <= 3:  # 월요일이면 3일치 기사 스크랩
+        tminus = (time_now - time).seconds / 3600
+        if w_day == 0 and tminus <= 72:  # 월요일이면 3일치 기사 스크랩
+            print(tminus)
             merge_or_make_article(news,key, time, site_db)
-        elif w_day != 0 and tminus <= 1:  # 월요일 아니면 1일치 기사 스크랩
+        elif w_day != 0 and tminus <= 24:  # 월요일 아니면 1일치 기사 스크랩
+            print(tminus)
             merge_or_make_article(news,key, time, site_db)            
         else:
             pass
@@ -227,8 +230,7 @@ def scrap():
         from_news_db = pd.read_csv(f'news_at_{search_time}.csv') #news db로딩
         sorted_scrapped_news = from_news_db.to_dict('records')
         last_article = sorted_scrapped_news[0]
-        dead_line = last_article['pubDate']        
-        # if sorted_scrapped_news[0].pubdate < 1: 중복되지 않은 기사는 스크랩
+        dead_line = last_article['pubDate']                
     except:
         news_cat = keyword_load()
         from_site_csv = pd.read_csv('site_title.csv') #site db로딩
@@ -236,6 +238,7 @@ def scrap():
         for key in news_cat:            
             get_news(key,site_db)
         sorted_scrapped_news = sorted(scrapped_news, key=itemgetter('pubDate'), reverse=True)
+
         news_df = pd.DataFrame(sorted_scrapped_news)
         news_df.to_csv(f'news_at_{search_time}.csv', index=False)
         site_df = pd.DataFrame(new_site_info)
