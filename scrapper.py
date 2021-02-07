@@ -5,6 +5,7 @@ import pandas as pd
 import re
 import datetime
 from datetime import date
+from pytz import timezone
 from bs4 import BeautifulSoup
 from flask import Flask, render_template, redirect
 from operator import itemgetter
@@ -30,6 +31,7 @@ sort = 'sim'  # 결과값의 정렬기준 시간순 date, 관련도 순 sim
 start = 1  # 출력 위치
 
 #timestamp
+#repl.it 에 올릴 때만 : current_timef = datetime.datetime.now(timezone('Asia/Seoul')).strftime('%Y-%m-%d %H:%M:%S')
 current_timef = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 current_time = datetime.datetime.strptime(current_timef, '%Y-%m-%d %H:%M:%S')
 search_date = current_time.strftime('%Y-%m-%d')
@@ -57,17 +59,20 @@ re_scrap_switch = "off"
 
 
 
-#----------스크레이핑 함수(가장 아래부터)----
 def make_text(nlink):    
     try:
         a = Article(nlink, language='ko', headers=headers, verify=False)
         a.download()
         a.parse()
-    except :
+    except :        
         text = "본문을 가져올 수 없습니다(SSL Certificate 에러)"
+        print(nlink)
+        print(text)
         return text
-    else:        
+    else:                        
         text = a.text
+        print(nlink)
+        print(text)
         return text
 
 
@@ -158,7 +163,10 @@ def merge_or_make_article(news,word,pubTime):
     if any(d['link'] == nlink for d in scrapped_news):
         search_overlap = next(item for item in scrapped_news if item['link'] == nlink)
         old_cat = search_overlap['cat']
-        search_overlap['cat'] = f'{old_cat}, {cat}'
+        if cat in old_cat :
+            pass
+        else :
+            search_overlap['cat'] = f'{old_cat}, {cat}'
     else :
         make_article(news,nlink,cat,pubTime)     
 
@@ -182,7 +190,7 @@ def article_check(word, news_list):
         for news in news_list:
             pubTime = convert_time(news['pubDate'])
             dayDiff = (current_time - pubTime).days        
-            if w_day == 0 and dayDiff < 2 :  # 월요일이면 72시간분 기사 스크랩                
+            if w_day == 0 and dayDiff < 3 :  # 월요일이면 72시간분 기사 스크랩                
                 merge_or_make_article(news,word, pubTime)
             elif w_day != 0 and dayDiff <= 1:  # 월요일 아니면 48시간분 기사 스크랩            
                 merge_or_make_article(news,word,pubTime)            
@@ -225,11 +233,11 @@ def re_scrap():
     scrapped_news = load_db_todict(f'news_{search_date}')
     last_news = scrapped_news[0]
     dead_line = last_news['pubDate']
-    dead_line = converted = datetime.datetime.strptime(dead_line, '%Y-%m-%d %H:%M:%S')
+    dead_line = datetime.datetime.strptime(dead_line, '%Y-%m-%d %H:%M:%S')
     re_scrap_switch = "on"
     for word in keywords :
         get_news(word)
-    sorted_added_news =sorted(added_news,key=itemgetter('pubDate'), reverse=True)
+    sorted_added_news = sorted(added_news,key=itemgetter('pubDate'), reverse=True)
     total_news = sorted_added_news + scrapped_news
     write_todb(total_news,f'news_{search_date}')
     write_todb(sorted_added_news,f'added_news_{current_time}')

@@ -3,7 +3,7 @@ from scrapper import scrap,re_scrap, get_kisa_status, current_time
 from load_write import append_todb, load_db_todict, load_db_tolist, write_todb
 
 
-app = Flask(__name__)
+app = Flask("hsns")
 
 @ app.route("/")
 def home():
@@ -16,3 +16,7 @@ def home():
 def rescrap():
     re_scrap()
     return  redirect("/")
+
+
+app.run(host='127.0.0.1', port=5000) 
+
