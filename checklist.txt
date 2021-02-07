@@ -5,8 +5,19 @@
 3. 날짜기반 검색 (오늘 날짜 함수 & 검색 조건) : 완료
 4. 뉴스에 출처 title 표시 : 완료
 5. kisa 오늘 상태 가져오기 : 완료
+18. newspaper3k 모듈로 기사 본문 가져오기 : 완료
+10. 결과 페이지에 검색 기간 추가 : 완료
+    # " datetime()기준으로 days()내의 검색 결과 len(scrapped_news) 입니다" 
+    # tminus가 article 체크 할 때 돌아가서 db 에서  불러올 경우에는 선언되지 않음.
+    # 요일체크를 글로벌로 만들어서 결과에 쓸 tminus 변수를 별도로 계산해둘것?
+    # 아니면 요일체크 방식을 다시 변경하든가....
+11. 스크랩 알고리즘 개선 : 완료
+    # asis : 키워드 - 검색 - 스크랩 - 다음 키워드 - 중복체크 - 스크랩 
+    # tobe : 모든 키워드 검색 후 link 랑 pubdate로 중복체크하고 살아남은 url로 스크랩 완료'
 
-
+14. brand db화 : 완료
+    #db에서 domain url 검색해서 next로 title 받아오기
+    #없을 때만 try 하고 timeout 되면 그냥 domain으로 추가
 
 6. 키워드 선택 카테고리화
 # 카테고리 선택하면 관련 키워드로 모두 검색
@@ -15,34 +26,17 @@
 7. 뉴스에 가중치 설정
 # db에서 특정 키워드들과 hit 율이 높을수록 가중치 추가하여 분류
 
-8. 검색결과 DB에 저장하고 DB에 있으면 그 값 불러오기
-# db저장은 날짜기준으로? : 완료
-# db에 저장된 가장 위의 pubdate가 시각이 검색 시간과 6시간 이상 차이나면 불러오지 말고 새로 검색하기
-# db 종류는 두개
-#   1). news list db : news link 와 pubdate만 저장. today()_newslist.csv
-#   2). keyword and search list db : keyword_datetime.now().csv 형태로, 키워드 별로 검색된 기사를 저장된
-# 검색 시작하면 일단 오늘날짜의 news list db가 있는지 체크 
-# 있으면 news 의 link 만 스크랩해서 가져와서 news list db에 있는지 확인. 
-# 없다면 일반적으로 기사 스크랩 시작 해서 양쪽 db에 저장하고 완료
+8. 검색결과 DB에 저장하고 DB에 있으면 그 값 불러오기 : 완료
+
 
 9. 유저 키워드 추가기능
 #키워드 추가 페이지로 접근하면 keyword.csv 파일을 긁어서 list로 만들고 다시 form 의 default 값으로 표시
 #위에서 표시된 값 다음에 사용자가 단어 추가하고 submit 하면 그걸 args list로 만들어서 keyword.csv에 덮어쓴다.
 
-10. 결과 페이지에 검색 기간 추가 : 개선 필요
-# " datetime()기준으로 days()내의 검색 결과 len(scrapped_news) 입니다" 
-# tminus가 article 체크 할 때 돌아가서 db 에서  불러올 경우에는 선언되지 않음.
-# 요일체크를 글로벌로 만들어서 결과에 쓸 tminus 변수를 별도로 계산해둘것?
-# 아니면 요일체크 방식을 다시 변경하든가....
-
 10 - 2 검색 추가 기능
 # 오늘 아침 9시 기준 수집된 뉴스입니다. 추가로 수집하시려면 아래 버튼을 누르십시오.
 # db의 가장 위에 있는 pubdate를 불러와서 현재 datetime 과 그 사이에 있는 기사만 append (기사 밀려나는것 방지)
-
-
-11. 스크랩 알고리즘 개선 : 완료
-# asis : 키워드 - 검색 - 스크랩 - 다음 키워드 - 중복체크 - 스크랩 
-# tobe : 모든 키워드 검색 후 link 랑 pubdate로 중복체크하고 살아남은 url로 스크랩 완료'
+# sortned_scrapped_news 전역화 필요
 
 12. 검색어 순위
 # 키워드별 기사 수가 많은 순서에서 적은 순서로
@@ -50,16 +44,6 @@
 
 13. 광고기사 제외
 # description 이나 title 에 발매, 출시 같은 문구 있으면 수집에서 제외
-
-
-13. read / home page 교체
-# read -> home : 완료
-# home -> setting
-
-14. brand db화 : 완료
-#db에서 domain url 검색해서 next로 title 받아오기
-#없을 때만 try 하고 timeout 되면 그냥 domain으로 추가
-
 
 15. db업데이트 시점 결정 : 함수에서 new entry를 elif로 체크하게 함. 완료
 #title db 같은 경우 신규  entry가 있을 때 바로 업데이트 하고 그걸 기준으로 다시 조회해야 soup를 만드는 횟수가 줄어들 것
@@ -70,9 +54,10 @@
 
 17. 키워드별로 검색결과 수 다르게 조정
 
-18. newspaper3k 모듈로 기사 본문 가져오기 : 완료
-
 19. newspaper3k로 가져온 기사 보기 좋게 바꾸기
+
+20. scrap()함수 함수화
+
 
 tminus
 if week day ==0 and tminus.days<=3 and tminus.hours > 1

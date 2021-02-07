@@ -1,4 +1,4 @@
-domain,brand
+domain,media_name
 www.dailysecu.com,데일리시큐
 www.gukjenews.com,국제뉴스
 www.betanews.net:8080, 베타뉴스
@@ -17,7 +17,7 @@ www.digitaltoday.co.kr,디지털투데이
 www.ftoday.co.kr,파이낸셜투데이
 www.dailypop.kr,데일리팝
 www.ytn.co.kr,YTN
-it.chosun.com,IT 조
+it.chosun.com,IT 조선
 www.donga.com,동아닷컴
 www.joongboo.com,중부일보
 www.ciokorea.com,CIO Korea
@@ -63,13 +63,40 @@ www.cstimes.com,컨슈머타임스
 www.ekoreanews.co.kr,이코리아
 www.wikitree.co.kr,위키트리
 www.ekn.kr,에너지경제신문
-www.idsn.co.kr,ë§¤ì�¼ì•ˆì „ì‹ ë¬¸
-www.gamemeca.com,"게임메카, 대한민국 1등 인터넷 게임신문"
+www.idsn.co.kr,매일안전신문
+www.gamemeca.com,게임메카
 www.ksilbo.co.kr,경상일보
-www.technoa.co.kr,[테크노아] - Digital Community Techno@
+www.technoa.co.kr,테크노아
 www.nextdaily.co.kr,넥스트데일리
 www.osen.co.kr,OSEN
 www.topstarnews.net,톱스타뉴스
 news.einfomax.co.kr,연합인포맥스
 www.m-i.kr,매일일보
-byline.network,Byline Network - IT 전문기자의 연대 바이라인네트워크
+byline.network,Byline Network
+view.asiae.co.kr,아시아경제
+www.news1.kr,뉴스1
+www.hortitimes.com,월간원예
+www.ilovepc.co.kr,스마트PC사랑
+www.segye.com,세계일보
+www.kidd.co.kr,산업일보
+www.cctvnews.co.kr,CCTV뉴스
+www.radiokorea.com,라디오코리아
+news.joins.com,중앙일보
+www.domin.co.kr,전북도민일보
+www.jjn.co.kr,전북중앙신문
+www.nytimes.com,The New York Times
+www.hellot.net,www.hellot.net
+www.obsnews.co.kr,OBS경인TV
+www.youthdaily.co.kr,청년일보
+kookbang.dema.mil.kr,국방일보
+www.ajunews.com,아주경제
+news.wowtv.co.kr,한국경제TV
+www.chosun.com,조선일보
+monthly.chosun.com,월간조선
+www.kukinews.com,쿠키뉴스
+www.ggilbo.com,금강일보
+www.seoul.co.kr,서울신문
+medicalworldnews.co.kr,medicalworldnews.co.kr
+www.namdonews.com,남도일보
+www.namdonews.com,남도일보
+www.dnews.co.kr,e대한경제

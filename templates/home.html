@@ -12,6 +12,9 @@
     </h1>
     <h4> 현재 KISA 인터넷 침해사고 경보단계 : {{t_info}} </h4>
     <h3>{{today}} 기준으로, {{count}}개 기사를 수집하였습니다. </h3>
+    <form action="/db_rebuild">
+      <button type="submit">현시간 기준으로 기사 다시 수집하기</button>   
+   </form>
     <h4> 검색어별 빈도 순위 </h4>
   </header>
   <main>
