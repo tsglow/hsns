@@ -27,7 +27,7 @@ NA_id = "IHh_ePMGCQVkZkjIZ1CA"
 NA_psd = "AzbXHQ6BTA"
 encode_type = 'json'  # 출력 방식 json 또는 xml
 max_display = 6  # 검색어당 가져올 뉴스 수
-sort = 'sim'  # 결과값의 정렬기준 시간순 date, 관련도 순 sim
+sort = 'date'  # 결과값의 정렬기준 시간순 date, 관련도 순 sim
 start = 1  # 출력 위치
 
 #timestamp
@@ -65,15 +65,16 @@ def make_text(nlink):
         a.download()
         a.parse()
     except :        
-        text = "본문을 가져올 수 없습니다(SSL Certificate 에러)"
-        print(nlink)
-        print(text)
+        text = "본문을 가져올 수 없습니다(SSL Certificate 에러)"        
         return text
     else:                        
         text = a.text
-        print(nlink)
-        print(text)
-        return text
+        print(nlink, len(text))
+        if len(text) < 40:
+            text = "본문을 가져올 수 없습니다(newspaper3k가 내용을 가져오지 못함)"        
+            return text
+        else : 
+            return text
 
 
 def make_site_info(domain, name):
@@ -167,6 +168,13 @@ def merge_or_make_article(news,word,pubTime):
             pass
         else :
             search_overlap['cat'] = f'{old_cat}, {cat}'
+    elif any(d['link'] == nlink for d in added_news):
+        search_overlap = next(item for item in added_news if item['link'] == nlink)
+        old_cat = search_overlap['cat']
+        if cat in old_cat :
+            pass
+        else :
+            search_overlap['cat'] = f'{old_cat}, {cat}'
     else :
         make_article(news,nlink,cat,pubTime)     
 
@@ -204,6 +212,12 @@ def get_news(word):
     news_list = news_request.json()["items"]
     article_check(word, news_list)
 
+def get_current_time():
+    current_timef = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    current_time = datetime.datetime.strptime(current_timef, '%Y-%m-%d %H:%M:%S')
+    scrap_time = {"time" : current_time}
+    write_todb(scrap_time, "scrap_time")
+    return current_time
 
 def get_kisa_status():
     r = requests.get("https://www.krcert.or.kr/main.do")
@@ -214,7 +228,8 @@ def get_kisa_status():
 
 def scrap():
     try:
-        global scrapped_news
+        global scrapped_news, current_time
+        current_time = get_current_time()
         scrapped_news = load_db_todict(f'news_{search_date}')
         print("db loaded")
     except:        
@@ -229,7 +244,9 @@ def scrap():
         return scrapped_news
 
 def re_scrap():
-    global scrapped_news, dead_line, re_scrap_switch
+    print("scrapping again")
+    global scrapped_news, dead_line, re_scrap_switch, current_time
+    current_time = get_current_time
     scrapped_news = load_db_todict(f'news_{search_date}')
     last_news = scrapped_news[0]
     dead_line = last_news['pubDate']
