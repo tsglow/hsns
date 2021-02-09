@@ -93,16 +93,20 @@ def get_brand(domain):
     if any(d['domain'] == domain for d in media):
         site_info = next(item for item in media if item['domain'] == domain)
         name = site_info['media_name']
+        print("found it! in media")
         return name
     elif any(d['domain'] == domain for d in new_media_info):
         site_info = next(item for item in new_media_info if item['domain'] == domain)
         name = site_info['media_name']
+        print("found it! in new_media")
         return name
     elif any(d['domain'] == domain for d in new_media_info_error):
         site_info = next(item for item in new_media_info_error if item['domain'] == domain)
         name = site_info['media_name']
+        print("found it! in trash can")
         return name
     else:
+        print(f'Can not find {domain} in db')
         try:            
             rst = requests.get(f"http://{domain}", allow_redirects=True, timeout=10, headers=headers, verify=False)
         except:
@@ -215,7 +219,9 @@ def get_news(word):
 def get_current_time():
     current_timef = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     current_time = datetime.datetime.strptime(current_timef, '%Y-%m-%d %H:%M:%S')
-    scrap_time = {"time" : current_time}
+    scrap_time_entry = {"time" : current_time}
+    scrap_time = []
+    scrap_time.append(scrap_time_entry)
     write_todb(scrap_time, "scrap_time")
     return current_time
 
@@ -229,15 +235,18 @@ def get_kisa_status():
 def scrap():
     try:
         global scrapped_news, current_time
-        current_time = get_current_time()
+        current_time = load_db_tolist("scrap_time")
+        current_time = current_time[0]
+        current_time = current_time['time']
         scrapped_news = load_db_todict(f'news_{search_date}')
         print("db loaded")
-    except:        
+    except:
+        current_time = get_current_time()        
         for word in keywords :
             get_news(word)
         sorted_scrapped_news = sorted(scrapped_news,key=itemgetter('pubDate'), reverse=True)
         write_todb(sorted_scrapped_news,f'news_{search_date}')        
-        append_todb(new_media_info + new_media_info_error, 'media')
+        append_todb(new_media_info, 'media')
         append_todb(new_media_info_error, 'media_error')
         return sorted_scrapped_news
     else :
@@ -246,7 +255,7 @@ def scrap():
 def re_scrap():
     print("scrapping again")
     global scrapped_news, dead_line, re_scrap_switch, current_time
-    current_time = get_current_time
+    current_time = get_current_time()
     scrapped_news = load_db_todict(f'news_{search_date}')
     last_news = scrapped_news[0]
     dead_line = last_news['pubDate']
